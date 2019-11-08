@@ -1,2 +1,13 @@
 *.class
 *.log
+.idea
+.ivy2/
+.sbt/
+.DS_Store
+src/main/generated
+src/test/generated
+project/target/
+project/project/
+target/
+.env
+.local/
