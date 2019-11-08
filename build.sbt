@@ -21,10 +21,8 @@ libraryDependencies ++= Seq(
 /****************************************************************/
 // SCALAPB SETUP
 
-//libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
-
 // custom cli options
-PB.protocOptions in Compile := Seq("--proto_path", ".")
+PB.protocOptions in Compile := Seq("--proto_path", baseDirectory.value.toString)
 PB.protocVersion := "-v3.7.1"
 
 
