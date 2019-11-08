@@ -43,24 +43,25 @@ PB.protocOptions in Compile := Seq("--proto_path", ".")
 PB.protocVersion := "-v3.7.1"
 
 
-val protoWhitelist: Set[String] = Set(
-  "protorepo/employment",
-  "protorepo/org_charts",
-  "protorepo/org_units",
-  "protorepo/permissions",
-  "protorepo/event_gateway",
-  "protorepo/namely/giraffe"
-)
+//val protoWhitelist: Set[String] = Set(
+//  "protorepo/employment",
+//  "protorepo/org_charts",
+//  "protorepo/org_units",
+//  "protorepo/permissions",
+//  "protorepo/event_gateway",
+//  "protorepo/namely/giraffe"
+//)
 
 // set the build path
-PB.protoSources in Compile ++= protoWhitelist.toSeq.map(path => file(path))
+PB.protoSources in Compile ++= Seq(file("protorepo"))
 
 // Additional directories to search for imports:
 PB.includePaths in Compile ++= Seq(file("protorepo"))
 
+excludeFilter in PB.generate := new SimpleFileFilter((f: File) => f.getAbsolutePath.contains("protorepo/google/protobuf/"))
+
 // set output and options
 PB.targets in Compile := Seq(
-  //  PB.gens.java -> (sourceManaged in Compile).value,
   scalapb.gen(
     flatPackage=false, // set to true to remove file name subpackage for scala classes
     javaConversions=false,
