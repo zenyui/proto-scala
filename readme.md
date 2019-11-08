@@ -1,0 +1,3 @@
+### scalapb example
+
+This is demonstrating an issue I'm having with selectively grabbing google dependencies. In theory, the service protobufs should be able to dynamically request the google protobufs, but it doesn't seem to work unless I explicitly build all the google protobufs as well. Also, the subdirectory `protorepo/google/protobuf` cannot be directly compiled...
