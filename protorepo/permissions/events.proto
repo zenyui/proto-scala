@@ -1,0 +1,218 @@
+syntax = "proto3";
+
+package namely.permissions;
+
+option go_package = "permissions";
+option java_multiple_files = true;
+option java_outer_classname = "EventsProto";
+option java_package = "com.namely.protobuf.permissions";
+
+// AccessRole Events
+
+// AccessRoleCreated is sent when an
+// access role is created
+message AccessRoleCreated {
+  string company_uuid = 1;
+  // role HCM id
+  string role_id = 2;
+  // access roles associated with this company
+  string role_name = 3;
+  // access rules associated with this role
+  repeated AccessRule access_rules = 4;
+  // role HCM uuid
+  string role_uuid = 5;
+}
+
+// AccessRoleUpdated is sent when an
+// access role is updated, and includes
+// all rules for the given role
+message AccessRoleUpdated {
+  // the company uuid
+  string company_uuid = 1;
+  // role HCM id
+  string role_id = 2;
+  // role name
+  string role_name = 3;
+  // access roles associated with this company
+  repeated AccessRule access_rules = 4;
+  // role HCM uuid
+  string role_uuid = 5;
+  // the list of deleted rules as part of this update
+  repeated string deleted_rule_uuids = 6;
+}
+
+// AccessRoleDeleted is emitted when a role is deleted
+message AccessRoleDeleted {
+  string company_uuid = 1;
+  // role HCM id
+  string role_id = 2;
+  // role name
+  string role_name = 3;
+  // role HCM uuid
+  string role_uuid = 4;
+  // the list of deleted rules as part of this update
+  repeated string deleted_rule_uuids = 5;
+}
+
+// AccessRoleSnapshot is a list of
+// all access roles for a given company
+message AccessRolesSnapshot {
+  string company_uuid = 1;
+  // the snapshot includes all roles associated with this
+  // company. For parsimony we re-use the AccessRoleUpdated
+  // message
+  // access roles associated with this company
+  repeated AccessRoleUpdated access_roles = 2;
+}
+
+//             Column            |            Type             |                         Modifiers
+// ------------------------------+-----------------------------+-----------------------------------------------------------
+//  id                           | integer                     | not null default nextval('access_rules_id_seq'::regclass)
+//  company_id                   | integer                     |
+//  access_role_id               | integer                     |
+//  access_ability_type_id       | integer                     | not null
+//  access_scope_type_id         | integer                     |
+//  access_field_group_bundle_id | integer                     |
+//  is_exception                 | boolean                     |
+//  exception_type_id            | integer                     |
+//  foreign_id                   | integer                     |
+//  created_at                   | timestamp without time zone | not null
+//  updated_at                   | timestamp without time zone | not null
+//  is_whitelist                 | boolean                     |
+//  whitelist_type_id            | integer                     |
+
+// AccessRule mirrors the HCM access_rules table listed above. The names are denormalized to allow for easier
+// diff calculation and to allow HCM to change code defined ids if and when appropriate.
+// Additionally we use strings for hcm ids to avoid wrapping our ids in well well_known_types
+// and leverage empty strings to indicate nullity
+message AccessRule {
+  // the HCM id of the access rule
+  string access_rule_id = 1;
+  // if this a field groupd bundle rule,
+  // this will contain the HCM field group bundle id associated with the rule
+  string access_field_group_bundle_id = 2;
+  // if this a field groupd bundle rule,
+  // this will contain the field group bundle name associated with the rule
+  string access_field_group_bundle_name = 3;
+  // the HCM ability type id
+  // @see namely/app/lib/access/ability_types.rb
+  string access_ability_type_id = 4;
+  // the HCM ability type name (referred to as symbol in)
+  // e.g. 'global_can_log_in', 'review_batch_manager'
+  // @see namely/app/lib/access/ability_types.rb
+  string access_ability_type_name = 5;
+  // access scope type id
+  // the scope of the ability type e.g. Profile, CompanyDivision, Team
+  // @see namely/app/models/access_rule.rb
+  string access_scope_type_top_level_type_name = 6;
+  // access scope type HCM id
+  // this is a code-defined ID stored in the db that
+  string access_scope_type_id = 7;
+  // access scope type name
+  // indicates the leaf type of the scope, e.g. 'All', 'Same group type', 'Self'
+  string access_scope_type_name = 8;
+  // access exception type HCM id
+  // when non-empty this implies that the foreign_id, foreign_type, foreign_name
+  // will not be empty
+  string exception_type_id = 9;
+  // access exception type name
+  // AccessRole, CompanyDivision, Team, Profile
+  string exception_type_name = 10;
+  // the HCM id of foreign object referenced by a whitelist or exception
+  string foreign_id = 11;
+  // The type of entity associated with the white list or exception
+  // e.g. AccessRole, CompanyDivision, Team, Profile
+  string foreign_type = 12;
+  // The name of the foreign object (e.g. role 'Adminstrator', or User 'John Doe')
+  string foreign_name = 13;
+  // The HCM identifier type of white list id
+  // when non-empty this implies that the foreign_id, foreign_type, foreign_name
+  // will not be empty
+  string whitelist_type_id = 14;
+  // The HCM name of the white list
+  string whitelist_type_name = 15;
+  // The HCM rule uuid
+  string access_rule_uuid = 16;
+}
+
+// EmployeeRole Events
+
+// EmployeeRoleUpdated captures a change for a user's role
+message EmployeeRoleUpdated {
+  // The uuid of the employee's company
+  string company_uuid = 1;
+  // The uuid of the employee who's role was changed
+  string employee_uuid = 2;
+  // the previous access role id assigned to the employee
+  string previous_access_role_id = 3;
+  // the name of the previous access role assigned to the employee
+  string previous_access_role_name = 4;
+  // the current access role id assigned to the employee
+  string current_access_role_id = 5;
+  // the name of the current access role assigned to the employee
+  string current_access_role_name = 6;
+  // the previous access role uuid assigned to the employee
+  string previous_access_role_uuid = 7;
+  // the current access role uuid assigned to the employee
+  string current_access_role_uuid = 8;
+}
+
+// AcessFieldGroupBundle events
+
+// AccessFieldGroupBundleCreated is sent when AccessFieldGroupBundle
+// is created
+message AccessFieldGroupBundleCreated {
+  // The company uuid
+  string company_uuid = 1;
+  // The Field Group Bundle's HCM id
+  string access_field_group_bundle_id = 2;
+  // The Field Group Bundle's name
+  string access_field_group_bundle_name = 3;
+  // the fields in this access field group bundle
+  repeated Field fields = 4;
+}
+
+// AccessFieldGroupBundleUpdated is sent when AccessFieldGroupBundle
+// is updated
+message AccessFieldGroupBundleUpdated {
+  // The company uuid
+  string company_uuid = 1;
+  // The access field group bundle HCM id
+  string access_field_group_bundle_id = 2;
+  // The access field group bundle's name
+  string access_field_group_bundle_name = 3;
+  // the fields in this access field group bundle
+  repeated Field fields = 4;
+}
+
+// AccessFieldGroupBundleDeleted is sent when AccessFieldGroupBundle
+// is deleted
+message AccessFieldGroupBundleDeleted {
+  // The company uuid
+  string company_uuid = 1;
+  // The access field group bundle HCM id
+  string access_field_group_bundle_id = 2;
+  // The access field group bundle's name
+  string access_field_group_bundle_name = 3;
+}
+
+// AccessFieldGroupBundlesSnapshot is a list of all field group bundles for a given company
+message AccessFieldGroupBundlesSnapshot {
+  // The company uuid
+  string company_uuid = 1;
+  // The snapshot includes all field group bundles associated with this company
+  // AccessFieldGroupBundles associated with this company
+  repeated AccessFieldGroupBundleUpdated access_field_group_bundles = 2;
+}
+
+// Access field group bundle fields
+message Field {
+  // the id of the field
+  string field_id = 1;
+  // the name of the field
+  string field_name = 2;
+  // the field label - a humanized name of the field
+  string field_label = 3;
+  // the company field label - a humanized name of the field belonging to a particular company
+  string company_field_label = 4;
+}

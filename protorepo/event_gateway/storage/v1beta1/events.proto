@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package namely.event_gateway.storage.v1beta1;
+
+option java_multiple_files = true;
+option java_outer_classname = "EventsProto";
+option java_package = "com.namely.protobuf.event_gateway.storage.v1beta1";
+
+import "event_gateway/storage/v1beta1/service_topic.proto";
+import "google/protobuf/field_mask.proto";
+
+// Create command to create service topic
+message CreateServiceTopic {
+  ServiceTopic service_topic = 1;
+}
+
+// Update commands to alter the service topic
+message UpdateServiceTopic {
+  string service_name = 1;
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  google.protobuf.FieldMask field_mask = 2;
+}
+
+message CreateServiceTopicSnapshot {
+  repeated ServiceTopic service_topics = 1;
+}
+
+message ServiceTopicUpdated {
+  string service_name = 1;
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  google.protobuf.FieldMask field_mask = 2;
+}
+
+message ServiceTopicCreated {
+  ServiceTopic service_topic = 1;
+}
+
+message ServiceTopicSnapshotCreated {
+  repeated ServiceTopic service_topics = 1;
+}

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package namely.org_units;
+
+option csharp_namespace = "Namely.OrgUnits.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "AllocationProto";
+option java_package = "com.namely.protobuf.org_units";
+
+message Allocation {
+  // The primary identifier for the allocation
+  string allocation_uuid = 1;
+  // The employment assigned to the org unit
+  string employment_allocation_uuid = 2;
+  // The org unit that the employment is assigned to
+  string org_unit_uuid = 3;
+  // The percentage that employment is allocated to the org unit.
+  // Use int to capture 3 decimals of precision
+  int32 value = 4;
+  // Is this their primary org unit assignment?
+  enum Designation {
+    DESIGNATION_UNDEFINED = 0;
+    DESIGNATION_PRIMARY = 1;
+  }
+  Designation designation = 5;
+}

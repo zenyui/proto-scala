@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package namely.event_gateway.storage.v1beta1;
+
+option java_multiple_files = true;
+option java_outer_classname = "ServiceTopicProto";
+option java_package = "com.namely.protobuf.event_gateway.storage.v1beta1";
+
+// ServiceTopic holds the mapping between a namely service and a kafka topics.
+message ServiceTopic {
+  // service name as service name defined in the namely proto definitions guide.
+  // @see https://docs.google.com/document/d/108rIM2P4GQFC3EpXU4YCuZ87mpO48cSM9iu-nOV77pQ/edit#heading=h.l3hhq3mtwjl7
+  // example: org_units
+  string service_name = 1;
+  // defines the topic that the service will be consuming events from.
+  string destination_topic_name = 2;
+  // topic that holds any events that come after the hold mode has been initiated.
+  string holding_topic_name = 3;
+  // defines the possible state of a service topic.
+  // DEFAULT state means that there is no need of holding_topic because all events will go the destination_topic
+  // HOLDING state means that the service is in holding mode and that all events with the header bypass_hold will be stashed
+  // into the holding_topic until the holding mode is deactivated and migration completed.
+  // MIGRATING state means that the service is in migration mode. At this stage all events in holding_topic will be moved to
+  // the destination_topic.
+  enum State {
+    DEFAULT = 0;
+    HOLDING = 1;
+    MIGRATING = 2;
+  }
+  State state = 4;
+}

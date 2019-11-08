@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package namely.employment;
+
+option csharp_namespace = "Namely.Employment.Events";
+option java_multiple_files = true;
+option java_outer_classname = "EventsProto";
+option java_package = "com.namely.protobuf.employment";
+
+import "employment/employment.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/wrappers.proto";
+
+message EmploymentCreated {
+  Employment employment = 1;
+  // This is not part of the employment, but absolutely must be written at the
+  // same time by the backfiller to payrolldb.
+  google.protobuf.BoolValue include_in_payroll = 2;
+}
+
+message EmploymentUpdated {
+  Employment employment = 1;
+  // This is not part of the employment, but absolutely must be written at the
+  // same time by the backfiller to payrolldb.
+  google.protobuf.BoolValue include_in_payroll = 2;
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  // https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/field-mask
+  google.protobuf.FieldMask field_mask = 3;
+}
+
+message EmploymentDeleted {
+  Employment employment = 1;
+  // Indicates if we delete employment from both employments and payrolldb or just from payrolldb
+  google.protobuf.BoolValue delete_only_from_payroll = 2;
+}
+
+// Messages that we use to implement Snapshot Pattern Data Fix
+// https://docs.google.com/document/d/1zTpv8ffBaoFREWPQ6qLEOTgTF31PY4ZnJPXbf7q-jd8/edit#heading=h.qethgnlatf3c
+message EmploymentSnapshot {
+  Employment employment = 1;
+}

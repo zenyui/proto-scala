@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package namely.event_gateway;
+
+option java_multiple_files = true;
+option java_outer_classname = "ServiceProto";
+option java_package = "com.namely.protobuf.event_gateway";
+
+import "event_gateway/event.proto";
+import "google/protobuf/timestamp.proto";
+
+service EventGateway {
+  // If this method returns OK, then your message is guaranteed to have been placed on the underlying stream.
+  // For some errors (DEADLINE_EXCEEDED, CANCELLED) your message may have been placed on the underlying stream,
+  // and these errors should be retried if you want at-least-once delivery semantics.
+  rpc SendEvent(Event) returns (SendEventResponse);
+  //
+  //   * This method attempts to place all the messages provided into the underlying stream.
+  //   * Some or all the messages may have been placed on the stream even when this method throws an error.
+  //
+  rpc SendBatchEvents(Events) returns (SendEventResponse);
+}
+
+service EventGatewayValidator {
+  // If this method returns OK, then the message is valid
+  rpc Validate(Event) returns (ValidateEventResponse);
+}
+
+message ValidateEventResponse {
+  // the validation response
+  // has the underlying type
+  // TODO: for now this will be the fully qualified protobuf type
+  // name
+  string event_type = 1;
+}
+
+message SendEventResponse {
+  // ack_time is the time that the message was successfuly published
+  // to the stream
+  google.protobuf.Timestamp ack_time = 1;
+  // place holder for any other messages we
+  // may wish to publish with this response
+  string result_message = 2;
+}
+
+message Events {
+  // list of events to be published.
+  repeated Event events = 1;
+}

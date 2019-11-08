@@ -1,0 +1,145 @@
+syntax = "proto3";
+
+package namely.event_gateway.examples;
+
+option java_multiple_files = true;
+option java_outer_classname = "ExamplePermissionsEventsProto";
+option java_package = "com.namely.protobuf.event_gateway.examples";
+
+// Events
+
+// AccessRole Events
+
+message AccessRoleCreated {
+  // the company object
+  string company_uuid = 1;
+  // access roles associated with this company
+  repeated AccessRole access_roles = 2;
+}
+
+message AccessRoleUpdated {
+  // the company object
+  string company_uuid = 1;
+  // access roles associated with this company
+  repeated AccessRole access_roles = 2;
+}
+
+message AccessRoleDeleted {
+  // the company object
+  string company_uuid = 1;
+  // access roles associated with this company
+  repeated AccessRole access_roles = 2;
+}
+
+message AccessRoleSnapshot {
+  // the company object
+  string company_uuid = 1;
+  // access roles associated with this company
+  repeated AccessRole access_roles = 2;
+}
+
+// AccessFieldGroupBundle Events
+
+message AccessFieldGroupBundleCreated {
+  // the company object
+  string company_uuid = 1;
+  // snapshot
+  repeated AccessFieldGroupBundle access_field_group_bundles = 2;
+}
+
+message AccessFieldGroupBundleUpdated {
+  // the company object
+  string company_uuid = 1;
+  // snapshot
+  repeated AccessFieldGroupBundle access_field_group_bundles = 2;
+}
+
+message AccessFieldGroupBundleDeleted {
+  // the company object
+  string company_uuid = 1;
+  // snapshot
+  repeated AccessFieldGroupBundle access_field_group_bundles = 2;
+}
+
+message AccessFieldGroupBundleSnapshot {
+  // the company object
+  string company_uuid = 1;
+  // snapshot
+  repeated AccessFieldGroupBundle access_field_group_bundles = 2;
+}
+
+// User Role events
+
+// Since a user can only ever be in one role at a time
+// we will always have an delete followed by an add
+
+// a role was added to a user
+message UserRoleAdded {
+  // the user id
+  string user_id = 1;
+  // requires that we have existing roles and permissions snapshot
+  // to query role information
+  string role_id = 2;
+}
+
+// a role was removed from a user
+message UserRoleRemoved {
+  // the user id
+  string user_id = 1;
+  // requires that we have snapshot existent
+  // to query role information
+  string role_id = 2;
+}
+
+// Company roles and permissions snapshot state
+message CompanyRolesPermissionsSnapshot {
+  // the company object
+  string company_uuid = 1;
+  // access roles associated with this company
+  repeated AccessRole access_roles = 2;
+  // access field groups associated with this company
+  repeated AccessFieldGroupBundle access_field_group_bundles = 3;
+}
+
+// A role is a collection of access rules
+message AccessRole {
+  // The name of the access role
+  string name = 1;
+  // An array of rules associated with this AccessRule
+  repeated AccessRule rules = 2;
+}
+
+message AccessFieldGroupBundle {
+  // the id of the access field group bundle
+  string id = 1;
+  // the name of the bundle
+  string name = 2;
+  // the fields in this access field group bundle
+  repeated Field fields = 3;
+}
+
+// An access rule is an ability type, a series of fields, along
+message AccessRule {
+  // the id of the rule
+  string id = 1;
+  // the name of the rule
+  string name = 2;
+  // type, the type of this access rule
+  enum RuleType {
+    RULE_TYPE_UNKNOWN = 0;
+    RULE_TYPE_WHITELIST = 1;
+    RULE_TYPE_EXCLUSION = 2;
+  }
+  RuleType type = 3;
+  // @see namely/app/models/access_rule.rb
+  string access_scope_type_id = 4;
+  // @see namely/app/lib/access/ability_types.rb
+  string access_ability_type_id = 5;
+}
+
+message Field {
+  // the id of the field
+  string id = 1;
+  // the name of the field
+  string name = 2;
+}

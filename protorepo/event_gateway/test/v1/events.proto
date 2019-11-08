@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package namely.event_gateway.test.v1;
+
+option java_multiple_files = true;
+option java_outer_classname = "EventsProto";
+option java_package = "com.namely.protobuf.event_gateway.test.v1";
+
+// events
+
+// A TestEntity Created event
+message TestEntityCreated {
+  string company_uuid = 1;
+  string entity_uuid = 2;
+  string value = 3;
+}
+
+// A TestEntity Updated event
+message TestEntityUpdated {
+  string company_uuid = 1;
+  string entity_uuid = 2;
+  string value = 3;
+}
+
+// A TestEntity Deleted event
+message TestEntityDeleted {
+  string company_uuid = 1;
+  string entity_uuid = 2;
+  string value = 3;
+}
+
+// A TestEntity Snapshot
+message TestEntitySnapshot {
+  string company_uuid = 1;
+  string entity_uuid = 2;
+  string value = 3;
+}
+
+// A TestEntity Create command {
+message CreateTestEntity {
+  string company_uuid = 1;
+  string entity_uuid = 2;
+  string value = 3;
+}

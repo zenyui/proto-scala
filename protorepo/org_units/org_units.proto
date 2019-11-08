@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package namely.org_units;
+
+option csharp_namespace = "Namely.OrgUnits.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "OrgUnitsProto";
+option java_package = "com.namely.protobuf.org_units";
+
+import "google/type/date.proto";
+import "google/type/postal_address.proto";
+
+enum OrgUnitTypeStatusFilter {
+  // Do not filter by org unit type status
+  ORG_UNIT_TYPE_STATUS_FILTER_ANY = 0;
+  // Filter for org unit type status active
+  ORG_UNIT_TYPE_STATUS_FILTER_ACTIVE = 1;
+  // Filter for org unit type status archived
+  ORG_UNIT_TYPE_STATUS_FILTER_ARCHIVED = 2;
+}
+
+message OrgUnit {
+  // The primary identifier for the Org Unit
+  string uuid = 1;
+  // The associated Org Unit Type
+  string org_unit_type_uuid = 2;
+  // Ex: ENG, BENACA, LV, FL-11
+  string code = 3;
+  // Ex: Engineering, Benefits & ACA, Las Vegas, 11th Floor
+  string name = 4;
+  // OrgUnitAddress which includes the address and location code
+  OrgUnitAddress org_unit_address = 5;
+  // The effective start date of the Org Unit
+  google.type.Date effective_start_date = 6;
+  // The effective end date the Org Unit. If null, then currently active
+  //Exclusive - When an org unit is deleted it is set with today's date, thus making it exclusive allows the deletion to take effect immediately. This behavior might be subject to change in order to provide consistency with effective end dates of other entities.
+  google.type.Date effective_end_date = 7;
+}
+
+message OrgUnitType {
+  // The Company UUID associated with this Org Unit Type
+  string company_uuid = 1;
+  // The primary identifier for the Org Unit Type
+  string uuid = 2;
+  // The name of Org Unit Type, Ex: Department, Division, Team, Guild, etc.
+  string name = 3;
+  // The Org Units associated to this Org Unit Type
+  repeated OrgUnit org_units = 4;
+  // The type of Org Unit Type in the new world (service) and the old (HCM, Payroll)
+  enum Type {
+    TYPE_UNDEFINED = 0;
+    TYPE_DEPARTMENT = 1;
+    TYPE_DIVISION = 2;
+    TYPE_OFFICE_LOCATION = 3;
+    TYPE_CUSTOM = 4;
+    TYPE_WORK_LOCATION = 5;
+  }
+  // type of the org unit type
+  Type type = 5;
+  // Enum to set status of the org unit type (archived or not etc')
+  enum OrgUnitTypeStatus {
+    ORG_UNIT_TYPE_STATUS_ACTIVE = 0;
+    ORG_UNIT_TYPE_STATUS_ARCHIVED = 1;
+  }
+  OrgUnitTypeStatus status = 6;
+}
+
+message OrgUnitAddress {
+  // Location code (from locator service)
+  string location_code = 1;
+  // Address of the org_unit
+  google.type.PostalAddress address = 2;
+  // The phone number associated with the address
+  string phone_number = 3;
+}

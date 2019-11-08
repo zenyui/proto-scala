@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package namely.employment;
+
+option csharp_namespace = "Namely.Employment.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "EmploymentStatusProto";
+option java_package = "com.namely.protobuf.employment";
+
+import "employment/common.proto";
+import "google/type/date.proto";
+
+message EmploymentStatus {
+  string employment_uuid = 1;
+  string subsidiary_uuid = 2;
+  string employee_uuid = 3;
+  int32 pay_group_uuid = 4;
+  string first_name = 5;
+  string last_name = 6;
+  google.type.Date hire_date = 7;
+  repeated EmploymentField incomplete_fields = 8;
+}
+
+message ListEmploymentStatusesRequest {
+  message EmploymentStatusFilter {
+    int32 pay_group_uuid = 1;
+    // TODO(MLH) what name is this?
+    string name = 2;
+    google.type.Date from_date = 3;
+    google.type.Date to_date = 4;
+    bool hcm_is_incomplete = 5;
+    bool payroll_is_incomplete = 6;
+  }
+  repeated string subsidiary_uuids = 1;
+  EmploymentStatusFilter filter = 2;
+  // optional - defaults to subsidiary
+  EmploymentField.FieldName sort_column = 3;
+  // optional - defaults to ascending
+  SortDirection sort_direction = 4;
+  // optional - the page size to return.  If missing or <1, will be set to a default value.  The API reserves the right to return fewer results than the specified page size.
+  uint32 page_size = 5;
+  // optional - if specified, will return paystub records starting at the page represented by the token.  If blank, will return paystub records starting at the most recent.
+  string page_token = 6;
+}
+
+message ListEmploymentStatusesResponse {
+  repeated EmploymentStatus employee_statuses = 1;
+  int32 incomplete_count = 2;
+  int32 total_count = 3;
+  // This is false for clients who don't process payroll with us, but still use
+  // another trax subsystem, such as benefits. This is in the response because
+  // it affects which fields get reported as incomplete. Incomplete tax and bank
+  // fields are ignored when the client does not "use payroll".
+  bool payroll_enabled = 4;
+}

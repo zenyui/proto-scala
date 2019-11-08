@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package namely.org_units;
+
+option csharp_namespace = "Namely.OrgUnits.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "OrgUnitsWriterServiceProto";
+option java_package = "com.namely.protobuf.org_units";
+
+import "google/api/annotations.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/wrappers.proto";
+import "org_units/employment_allocation.proto";
+import "org_units/org_units.proto";
+
+service OrgUnitsWriter {
+  rpc CreateOrgUnitType(CreateOrgUnitTypeRequest) returns (OrgUnitType) {
+    option (google.api.http) = {
+      post: "/v1alpha1/orgUnitType"
+      body: "*"
+    };
+  }
+  rpc UpdateOrgUnitType(UpdateOrgUnitTypeRequest) returns (OrgUnitType) {
+    option (google.api.http) = {
+      put: "/v1alpha1/orgUnitType/{org_unit_type.uuid}"
+      body: "*"
+    };
+  }
+  rpc CreateOrgUnit(CreateOrgUnitRequest) returns (OrgUnit) {
+    option (google.api.http) = {
+      post: "/v1alpha1/orgUnit"
+      body: "*"
+    };
+  }
+  rpc UpdateOrgUnit(UpdateOrgUnitRequest) returns (OrgUnit) {
+    option (google.api.http) = {
+      put: "/v1alpha1/orgUnit/{org_unit.uuid}"
+      body: "*"
+    };
+  }
+  rpc CreateEmploymentAllocation(CreateEmploymentAllocationRequest) returns (EmploymentAllocation) {
+    option (google.api.http) = {
+      post: "/v1alpha1/employment-allocation"
+      body: "*"
+    };
+  }
+  rpc UpdateEmploymentAllocation(UpdateEmploymentAllocationRequest) returns (EmploymentAllocation) {
+    option (google.api.http) = {
+      put: "/v1alpha1/employment-allocation/{employment_allocation.employment_allocation_uuid}"
+      body: "*"
+    };
+  }
+}
+
+message CreateOrgUnitTypeRequest {
+  OrgUnitType org_unit_type = 1;
+  // When the migrator is migrating org unit types, it needs
+  // to be able to set what the orgUnitTypeUuid should be
+  bool skip_org_unit_type_uuid_validation = 2;
+  // This is not part of the org units, but absolutely must be written at the
+  // same time by the backfiller to hcmdb.
+  google.protobuf.BoolValue display_in_team_sections = 3 [deprecated = true];
+}
+
+message UpdateOrgUnitTypeRequest {
+  OrgUnitType org_unit_type = 1;
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  // https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/field-mask
+  google.protobuf.FieldMask field_mask = 2;
+  // This is not part of the org units, but absolutely must be written at the
+  // same time by the backfiller to hcmdb.
+  google.protobuf.BoolValue display_in_team_sections = 3 [deprecated = true];
+}
+
+message CreateOrgUnitRequest {
+  OrgUnit org_unit = 1;
+  // When the migrator is migrating org units, it needs
+  // to be able to set what the orgUnitUuid should be
+  bool skip_org_unit_uuid_validation = 2;
+  // When the migrator is migrating org units, it needs to be able to let the
+  // customer know about problems before actually creating the org units, e.g.
+  // invalid addresses.
+  bool dry_run = 3;
+}
+
+message UpdateOrgUnitRequest {
+  OrgUnit org_unit = 1;
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  // https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/field-mask
+  google.protobuf.FieldMask field_mask = 2;
+}
+
+message CreateEmploymentAllocationRequest {
+  EmploymentAllocation employment_allocation = 1;
+  // if true, would only run validations without emitting an event
+  bool dry_run = 2;
+}
+
+message UpdateEmploymentAllocationRequest {
+  EmploymentAllocation employment_allocation = 1;
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  // https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/field-mask
+  google.protobuf.FieldMask field_mask = 2;
+  // if true, would only run validations without emitting an event
+  bool dry_run = 3;
+}

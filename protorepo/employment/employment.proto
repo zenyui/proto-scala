@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package namely.employment;
+
+option csharp_namespace = "Namely.Employment.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "EmploymentProto";
+option java_package = "com.namely.protobuf.employment";
+
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/wrappers.proto";
+import "google/rpc/status.proto";
+import "google/type/date.proto";
+import "namely/giraffe/stitch.proto";
+
+message Employment {
+  enum EmploymentStatus {
+    EMPLOYMENT_STATUS_UNDEFINED = 0;
+    // An active Employment
+    EMPLOYMENT_STATUS_ACTIVE = 1;
+    // An inactive Employment
+    EMPLOYMENT_STATUS_INACTIVE = 2;
+    // A deleted Employment
+    EMPLOYMENT_STATUS_DELETED = 3;
+  }
+  string employment_uuid = 1;
+  string subsidiary_uuid = 2 [
+    (namely.giraffe.stitch) = {
+      service: "companies.Service"
+      method: "GetSubsidiary"
+      request_parameter: "subsidiaryUuid"
+      field_name: "subsidiary"
+    }
+  ];
+  string employee_uuid = 3 [
+    (namely.giraffe.stitch) = {
+      service: "namely.profiles.v1beta1.ProfilesService"
+      method: "GetProfile"
+      request_parameter: "employeeUuid"
+      field_name: "profile"
+    }
+  ];
+  string pay_group_uuid = 4;
+  google.type.Date start_date = 5;
+  // Inclusive
+  google.type.Date end_date = 6;
+  EmploymentStatus status = 7;
+  // Indicates if employment should be excluded from payroll runs
+  // Null values are coalesced to false
+  google.protobuf.BoolValue exclude_from_payroll_runs = 8;
+}
+
+// Interal - The structure of the ListEmployments page token.
+message ListEmploymentsPageToken {
+  string last_returned_sequence_id = 1;
+  int32 total_count = 2;
+}
+
+message GetEmploymentRequest {
+  string employment_uuid = 1;
+}
+
+message ListEmploymentsRequest {
+  message ByEmployments {
+    repeated string employment_uuids = 1;
+  }
+  message ByEmployees {
+    repeated string employee_uuids = 1;
+  }
+  message ByPayGroups {
+    repeated string pay_group_uuids = 1;
+  }
+  message BySubsidiary {
+    string subsidiary_uuid = 1;
+  }
+  message ByCompany {
+    string company_uuid = 1;
+  }
+  oneof identifier {
+    ByEmployments by_employments = 1;
+    ByEmployees by_employees = 2;
+    ByPayGroups by_pay_groups = 3;
+    BySubsidiary by_subsidiary = 4;
+    ByCompany by_company = 7;
+  }
+  int32 page_size = 5;
+  string page_token = 6;
+}
+
+message ListEmploymentsResponse {
+  repeated Employment employments = 1;
+  // If next_page_token is blank, there are no records remaining.
+  // If not blank, next page of records can be obtained using the next_page_token
+  // value in a successive request.
+  string next_page_token = 2;
+  // The total count of records matching the criteria passed to ListPaystubs.  Intended for display to the user, not for pagination.  API reserves the right for this to be an estimate for performance reasons.
+  int32 total_count = 3;
+}
+
+message CreateEmploymentRequest {
+  Employment employment = 1;
+  // When a customer creates an employee (aka HCM profile), we open a HCM db
+  // transaction, insert the employee, call CreateEmployment, and then either
+  // rollback or commit. The problem is that CreateEmployment calls the employee
+  // service to validate the employee uuid (the HCM profile uuid), and it's not
+  // visible yet since it hasn't been committed.
+  bool skip_employee_uuid_validation = 2;
+  // This is not part of the employment, but absolutely must be written at the
+  // same time by the backfiller to payrolldb.
+  google.protobuf.BoolValue include_in_payroll = 3 [deprecated = true];
+}
+
+message UpdateEmploymentRequest {
+  Employment employment = 1;
+  // This is not part of the employment, but absolutely must be written at the
+  // same time by the backfiller to payrolldb.
+  google.protobuf.BoolValue include_in_payroll = 2 [deprecated = true];
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  // https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/field-mask
+  google.protobuf.FieldMask field_mask = 3;
+}
+
+message DeleteEmploymentRequest {
+  Employment employment = 1;
+  // Indicates if we delete employment from both employments and payrolldb or just from payrolldb
+  google.protobuf.BoolValue delete_only_from_payroll = 2;
+}
+
+message CanDeleteEmploymentRequest {
+  Employment employment = 1;
+  // Indicates if we delete employment from both employments and payrolldb or just from payrolldb
+  google.protobuf.BoolValue delete_only_from_payroll = 2;
+}
+
+message CanDeleteEmploymentResponse {
+  repeated string conflicting_tables = 1;
+  // Indicates if employment can be deleted
+  google.rpc.Status status = 2;
+}

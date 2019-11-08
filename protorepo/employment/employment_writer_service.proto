@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package namely.employment;
+
+option csharp_namespace = "Namely.Employment.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "EmploymentWriterServiceProto";
+option java_package = "com.namely.protobuf.employment";
+
+import "employment/employment.proto";
+import "google/api/annotations.proto";
+
+// Employment represents the link between an employee and a subsidiary.
+// The Employment Writer service would be the producer of employment Create and Update events in the eventstream.
+// Service: https://github.com/namely/employment-writer
+service EmploymentWriter {
+  // Creates an employment
+  rpc CreateEmployment(CreateEmploymentRequest) returns (Employment) {
+    option (google.api.http) = {
+      post: "/v1/employments"
+      body: "*"
+    };
+  }
+  // Updates an employment
+  rpc UpdateEmployment(UpdateEmploymentRequest) returns (Employment) {
+    option (google.api.http) = {
+      patch: "/v1/employments"
+      body: "*"
+    };
+  }
+  // Deletes an employment
+  rpc DeleteEmployment(DeleteEmploymentRequest) returns (Employment) {
+    option (google.api.http) = {
+      patch: "/v1/employments"
+      body: "*"
+    };
+  }
+}

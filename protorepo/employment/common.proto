@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package namely.employment;
+
+option csharp_namespace = "Namely.Employment.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "CommonProto";
+option java_package = "com.namely.protobuf.employment";
+
+enum SortDirection {
+  SORT_DIRECTION_ASC = 0;
+  SORT_DIRECTION_DESC = 1;
+}
+
+message EmploymentField {
+  enum FieldName {
+    FIELD_NAME_UNDEFINED = 0;
+    FIELD_NAME_EMPLOYMENT_UUID = 1;
+    FIELD_NAME_SUBSIDIARY_UUID = 2;
+    FIELD_NAME_EMPLOYEE_UUID = 3;
+    FIELD_NAME_PAY_GROUP_UUID = 4;
+    FIELD_NAME_EMAIL = 5;
+    FIELD_NAME_PERSONAL_EMAIL = 6;
+    FIELD_NAME_FIRST_NAME = 7;
+    FIELD_NAME_LAST_NAME = 8;
+    FIELD_NAME_BIRTH_DATE = 9;
+    FIELD_NAME_HIRE_DATE = 10;
+    FIELD_NAME_TERMINATION_DATE = 11;
+    FIELD_NAME_EMPLOYEE_NUMBER = 12;
+    FIELD_NAME_HOME_PHONE = 13;
+    FIELD_NAME_MOBILE_PHONE = 14;
+    FIELD_NAME_SSN = 15;
+    FIELD_NAME_MARITAL_STATUS = 16;
+    FIELD_NAME_ETHNICITY = 17;
+    FIELD_NAME_GENDER = 18;
+    FIELD_NAME_ADDRESS = 19; // composite field
+    FIELD_NAME_DEMOGRAPHIC = 20; // composite field
+    FIELD_NAME_BANKING = 21; // composite field
+    FIELD_NAME_TAX = 22; // composite field
+    FIELD_NAME_WAGES = 23; // composite field
+    FIELD_NAME_TERMINATION_REASON = 24;
+    FIELD_NAME_INCLUDE_IN_PAYROLL = 25;
+    FIELD_NAME_MODIFIED_BY = 26;
+  }
+  enum EntryPoint {
+    ENTRY_POINT_UNSPECIFIED = 0;
+    ENTRY_POINT_HCM = 1;
+    ENTRY_POINT_PAYROLL = 2;
+  }
+  FieldName name = 1;
+  EntryPoint entry_point = 2;
+  string url = 3;
+}

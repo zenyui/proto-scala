@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package namely.event_gateway;
+
+option java_multiple_files = true;
+option java_outer_classname = "MetaDataProto";
+option java_package = "com.namely.protobuf.event_gateway";
+
+// MetaData contains the primary core audit information
+// about who caused this event to be emitted.
+message MetaData {
+  string company_uuid = 1;
+  // The account uuid of the *human* who initiated the action that created this event.
+  // If impersonation is happening, this field must be set to the value of the "impersonate"
+  // field in the Auth at the Edge JWT.
+  // If impersonation is not happening, this field must be set to the value of the JWT-standard
+  // "sub" field.
+  // If Alice performs an action as herself, this is Alice's account uuid.
+  // If Alice is impersonating Bob to perform an action, this is Alice's account uuid.
+  string changed_by_account_uuid = 2;
+  // The account uuid of the *user* who initiated the action that created this event, as
+  // it appeared to the system.
+  // This field must be set to the value of the JWT-standard "sub" field regardless of if
+  // impersonation is happening.  It must not be left blank.
+  // If Alice performs an action as herself, this is Alice's account uuid.
+  // If Alice is impersonating Bob to perform an action, this is Bob's account uuid.
+  string assumed_changed_by_account_uuid = 3;
+}

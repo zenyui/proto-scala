@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package namely.event_gateway;
+
+option java_multiple_files = true;
+option java_outer_classname = "EventProto";
+option java_package = "com.namely.protobuf.event_gateway";
+
+import "event_gateway/meta_data.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+// Allow for event send time validation of UUIDv4 and timestamp fields.
+// TODO: We may want to leverage this validation for the meta fields of our events.
+// import "github.com/mwitkow/go-proto-validators/validator.proto";
+
+message Event {
+  // UUIDv4 unique event identifier assigned by the calling client.
+  string uuid = 1;
+  // UTC Event time should be populated by the calling client.
+  google.protobuf.Timestamp timestamp = 2;
+  // audit info data with information on who initiated the command that
+  // generated this event.
+  MetaData meta_data = 3;
+  // optional headers (useful for things such as open-tracing fields)
+  // publish_time will be added for you and overwritten if provided.
+  map<string, string> headers = 4;
+  // field contains the schema and marshalled data of the message
+  // For example, if you're serializing a "CredentialHistory" from the accounts package
+  // you would be setting this field as:
+  // { "type_url": "namely.accounts.CredentialHistory", "value": "{serialized message}" }
+  // NB: your particular language will have methods for packing this Any field, so don't attempt to
+  // create the type_url, value yourself.
+  // @see https://github.com/google/protobuf/blob/2ee7c4555fe50d986853e88bb30fdf234174734b/ruby/lib/google/protobuf/well_known_types.rb#L42
+  // @see https://godoc.org/github.com/golang/protobuf/ptypes/any
+  google.protobuf.Any data = 5;
+  // an override key value that if set will be used for partition selection
+  // and potentially event sourcing
+  // For example, if you're serializing a "CredentialHistory" from the accounts package
+  // you would be settings this field using the value of
+  // CredentialHistory.user_uuid
+  string key = 6;
+}

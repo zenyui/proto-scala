@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package namely.org_units;
+
+option csharp_namespace = "Namely.OrgUnits.EmployeeAssignment";
+option java_multiple_files = true;
+option java_outer_classname = "EmployeeAssignmentProto";
+option java_package = "com.namely.protobuf.org_units";
+
+message EmployeeAssignment {
+  // Employee uuid
+  string employee_uuid = 1;
+  // Org unit uuid
+  string org_unit_uuid = 2;
+  // Org unit type uuid
+  string org_unit_type_uuid = 3;
+}

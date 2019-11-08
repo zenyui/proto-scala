@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package namely.org_charts;
+
+option go_package = "org_charts";
+option java_multiple_files = true;
+option java_outer_classname = "EventsProto";
+option java_package = "com.namely.protobuf.org_charts";
+
+// Org Chart Events
+
+// EmployeeReportsToUpdated is sent when an Employees
+// direct report or dotted line reports to are updated
+// This event is emitted regardless of whether the
+// the underlying reports_to_employee_uuid or
+// dotted_line_reports_to_employee_uuids have changed.
+message EmployeeReportsToUpdated {
+  // The uuid of the employee's company
+  string company_uuid = 1;
+  // The uuid of the employee who's report (direct or dotted line)
+  // has changed
+  string employee_uuid = 2;
+  // the previous direct reports to manager uuid assigned to the employee
+  string previous_reports_to_employee_uuid = 3;
+  // the uuid of the current direct reports to manager assigned to the employee
+  string current_reports_to_employee_uuid = 4;
+  // the previous dotted line reports to manager uuid assigned to the employee
+  repeated string previous_dotted_line_reports_to_employee_uuids = 5;
+  // the uuid of the current dotted line reports to manager assigned to the employee
+  repeated string current_dotted_line_reports_to_employee_uuids = 6;
+}

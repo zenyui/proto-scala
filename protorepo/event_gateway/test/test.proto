@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package namely.event_gateway.test;
+
+option java_multiple_files = true;
+option java_outer_classname = "TestProto";
+option java_package = "com.namely.protobuf.event_gateway.test";
+
+message TestData {
+  string test_field = 1;
+}

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package namely.org_units;
+
+option csharp_namespace = "Namely.OrgUnits.EmployeeType";
+option java_multiple_files = true;
+option java_outer_classname = "EmployeeTypeProto";
+option java_package = "com.namely.protobuf.org_units";
+
+import "google/type/date.proto";
+
+message EmployeeType {
+  // The primary identifier for the Employee Type
+  string uuid = 1;
+  // Ex: FT / PT
+  string code = 2;
+  // Ex: Full-Time / Part-Time
+  string name = 3;
+  // The effective start date of the Employee Type
+  google.type.Date effective_start_date = 4;
+  // The effective end date the Employee Type. If null, then currently active
+  google.type.Date effective_end_date = 5;
+  // Legacy field from Payroll DB
+  bool disable_benefits = 6;
+  // Legacy field from Payroll DB
+  string waiting_period_code = 7;
+  // Legacy field from Payroll DB
+  int32 waiting_period_unit = 8;
+}

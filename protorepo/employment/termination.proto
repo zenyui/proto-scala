@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package namely.employment;
+
+option csharp_namespace = "Namely.Employment.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "TerminationProto";
+option java_package = "com.namely.protobuf.employment";
+
+import "employment/employment.proto";
+import "google/type/date.proto";
+
+enum CronActionType {
+  CRON_ACTION_UNDEFINED = 0;
+  CRON_ACTION_TERMINATE_BENEFITS = 1;
+  CRON_ACTION_EMPLOYEE_EXCLUDER = 2;
+  CRON_ACTION_GRANT_INACTIVE_ACCESS = 3;
+  CRON_ACTION_EMPLOYEE_DATE_LOG_INSERTER = 4;
+  CRON_ACTION_DEACTIVATE_ACCOUNT = 5;
+}
+
+message CronJob {
+  int64 action_date_time = 1;
+  CronActionType action_type = 2;
+  bool done = 3;
+}
+
+// TODO(MLH) Understand this entity
+message Termination {
+  Employment employment = 1;
+  google.type.Date last_check_date = 2;
+  // These three bools are used for the Write
+  bool terminate_benefits = 3;
+  bool deactivate_account = 4;
+  bool grant_inactive_access = 5;
+  repeated CronJob cron_jobs = 6;
+}
+
+message ListTerminationsRequest {
+  string employee_uuid = 1;
+}
+
+message ListTerminationsResponse {
+  repeated Termination terminations = 1;
+}
+
+message PutTerminationRequest {
+  Termination termination = 1;
+}
+
+message DeleteTerminationRequest {
+  message EmployeeSubsidiaryPair {
+    string employee_uuid = 1;
+    string subsidiary_uuid = 2;
+  }
+  oneof delete_termination_request_id {
+    string employment_uuid = 1;
+    EmployeeSubsidiaryPair employee_subsidiary_pair = 2;
+  }
+}

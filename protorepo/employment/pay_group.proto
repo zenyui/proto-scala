@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package namely.employment;
+
+option csharp_namespace = "Namely.Employment.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "PayGroupProto";
+option java_package = "com.namely.protobuf.employment";
+
+import "google/type/date.proto";
+
+message PayGroup {
+  string uuid = 1;
+  string subsidiary_uuid = 2;
+  string name = 3;
+  uint32 pay_periods_per_year = 4;
+  google.type.Date start_date = 5;
+  google.type.Date end_date = 6;
+}
+
+message ListPayGroupsRequest {
+  enum Filter {
+    // All records except those with an end date in the past
+    LIST_PAY_GROUPS_FILTER_ACTIVE = 0;
+    LIST_PAY_GROUPS_FILTER_ALL = 1;
+    // Return only the pay groups that the admin is allowed to view when managing a pay cycle
+    LIST_PAY_GROUPS_FILTER_FOR_PAYROLL_ADMIN = 2;
+  }
+  message BySubsidiaries {
+    repeated string subsidiary_uuids = 1;
+  }
+  message ByCompany {
+    string company_uuid = 1;
+  }
+  oneof identifier {
+    BySubsidiaries by_subsidiaries = 1;
+    ByCompany by_company = 2;
+  }
+  Filter filter = 3;
+}
+
+message ListPayGroupsResponse {
+  repeated PayGroup pay_groups = 1;
+}

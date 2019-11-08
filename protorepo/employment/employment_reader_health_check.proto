@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package namely.employment;
+
+option csharp_namespace = "Namely.Employment.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "EmploymentReaderHealthCheckProto";
+option java_package = "com.namely.protobuf.employment";
+
+message EmploymentReaderHealthCheckRequest {
+  // If this is false, we only check that the request is received.
+  // If it's true, we check that EmploymentReader can connect to its PG DB
+  bool check_database_connectivity = 1;
+}
+
+// Receiving a response at all is implied to mean that there is
+// connectivity to the service
+message EmploymentReaderHealthCheckResponse {
+  // If database connectivity was requested, we will return
+  // SUCCESS or FAILURE. NOT_REQUESTED indicates the request
+  // did not ask to check database connectivity.
+  DBConnectivity database_connectivity = 2;
+  enum DBConnectivity {
+    DB_CONNECTIVITY_HEALTH_CHECK_NOT_REQUESTED = 0;
+    DB_CONNECTIVITY_HEALTH_CHECK_SUCCESS = 1;
+    DB_CONNECTIVITY_HEALTH_CHECK_FAILURE = 2;
+  }
+}

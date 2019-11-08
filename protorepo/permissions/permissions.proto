@@ -1,0 +1,286 @@
+syntax = "proto3";
+
+package permissions;
+
+option go_package = "permissions";
+option java_multiple_files = true;
+option java_outer_classname = "PermissionsProto";
+option java_package = "com.namely.protobuf.permissions";
+
+import "google/api/annotations.proto";
+
+// Permissions service implements authorization for Namely services.
+//
+
+// Permissions service currently supports 5 types of permissions:
+// - GLOBAL:       these are simple boolean permissions that can be turned on
+//                 and off for a whole role
+// - EMPLOYEE:       these are permissions controlling access to employee objects.
+//                 (i.e. can see employee or can assume employee)
+// - EMPLOYEE_FIELD: some rules can have fields attached to them, they'll have
+//                 this type.
+// - TEAM:         permissions controlling access to team objects
+//                 (i.e can modify a team's structure)
+// - DIVISION:     permissions controlling access to company division objects
+//                 (i.e can modify a division)
+enum PermissionType {
+  PERMISSION_TYPE_GLOBAL = 0;
+  PERMISSION_TYPE_EMPLOYEE = 1;
+  PERMISSION_TYPE_FIELD = 2;
+  PERMISSION_TYPE_TEAM = 3;
+  PERMISSION_TYPE_DIVISION = 4;
+}
+
+// Permissions service currently supports 1 type of scopes:
+// - COMPANY:       limit current permissions scope to a single company
+enum ScopeType {
+  SCOPE_TYPE_COMPANY = 0;
+}
+
+// Scope defines a scope to limit permissions check to (i.e., company)
+message Scope {
+  ScopeType scope_type = 1;
+  string scope_uuid = 2;
+}
+
+// Permission object represents a permission that can be granted to a employee
+message Permission {
+  // name is a unique key that is readable for machines (i.e. global_can_log_in)
+  string name = 1;
+  PermissionType permissionType = 2;
+}
+
+// SupportedPermissionsReq does not allow any input parameters
+message SupportedPermissionsRequest {}
+
+// SupportedPermissionsResp contains a list of permissions that are supported
+// by the service
+message SupportedPermissionsResponse {
+  repeated Permission permissions = 1;
+  bool super_user = 2;
+}
+
+// GlobalPermissionsReq is used to fetch all simple permissions the employee has
+// been granted
+message GlobalPermissionsRequest {
+  // Deprecated - use employee_uuid instead.
+  string person_uuid = 1 [deprecated = true];
+  string employee_uuid = 2;
+  Scope scope = 3;
+}
+
+// GlobalPermissionsResp contains a list of permissions.
+message GlobalPermissionsResponse {
+  repeated string permissions = 1;
+  bool super_user = 2;
+}
+
+// EmployeesRequest is used to fetch all employees the requested employee can
+// access. Fields is an optional array, if fields attribute is set the
+// permissions service will filter employees based on this as well.
+message EmployeesRequest {
+  string employee_uuid = 1;
+  string permission = 2;
+  repeated string fields = 3;
+}
+
+// EmployeesResponse contains a list of employee uuids.
+message EmployeesResponse {
+  repeated string employee_uuids = 1;
+  bool super_user = 2;
+}
+
+// EmployeePermissionsRequest is used to specify the requested employee and the target
+// employee IDs. The method will return the granted permissions for the requested
+// employee that are available on the target one. So for example when employee A
+// (requested) visits employee B's (target) profile, the method will return
+// employee A's granted permissions.
+message EmployeePermissionsRequest {
+  string employee_uuid = 1;
+  string target_employee_uuid = 2;
+}
+
+// FieldPermissions is a list of permission names that are available for a
+// field
+message FieldPermissions {
+  repeated string permissions = 1;
+}
+
+// EmployeePermissionsResponse contains a list of employees level permission names and
+// a map of fields and field permission names.
+message EmployeePermissionsResponse {
+  repeated string permissions = 1;
+  map<string, FieldPermissions> field_permissions = 2;
+  bool super_user = 3;
+}
+
+// Same logic as ListEmployeesPermissionsRequest above but
+// with repeated target_employee_uuids instead of just one uuid
+message ListEmployeesPermissionsRequest {
+  string employee_uuid = 1;
+  repeated string target_employee_uuids = 2;
+}
+
+// EmployeePermissions represents a repeated string of permissions
+// and a map of field permissions, whose key is the uuid of the field
+// and value is a list of field permission names
+message EmployeePermissions {
+  repeated string permissions = 1;
+  map<string, FieldPermissions> field_permissions = 2;
+}
+
+// ListEmployeesPermissionsResponse contains a map.
+// Each key is a target employee uuid (from the target_employee_uuids of the request).
+// Each value is a list of employee permissions for that target.
+message ListEmployeesPermissionsResponse {
+  map<string, EmployeePermissions> employee_permissions = 1;
+  bool super_user = 2;
+}
+
+// ListFieldPermissionsRequest is used to retrieve a list of fields that
+// have the provided permission to access on the given target employee
+message ListFieldsPermissionsRequest {
+  string employee_uuid = 1;
+  string target_employee_uuid = 2;
+  string permission = 3;
+  Scope scope = 4;
+}
+
+// ListEmployeesPermissionsResponse contains a list of field names.
+message ListFieldsPermissionsResponse {
+  repeated string fields = 1;
+  bool super_user = 2;
+}
+
+// TeamsRequest is used to fetch all teams the requested employee can access
+message TeamsRequest {
+  string employee_uuid = 1;
+  string permission = 2;
+}
+
+// TeamsResponse contains a list of team uuids.
+message TeamsResponse {
+  repeated string team_uuids = 1;
+  bool super_user = 2;
+}
+
+// TeamPermissionsRequest is used to specify the requested employee and the target
+// team UUID. The method will return the granted permissions for the requested
+// team that are available on the target one. So for example when employee A
+// (requested) visits team B's (target) page, the method will return
+// employee A's granted permissions.
+message TeamPermissionsRequest {
+  string employee_uuid = 1;
+  string target_team_uuid = 2;
+}
+
+// TeamPermissionsResponse contains a list of permission names
+message TeamPermissionsResponse {
+  repeated string permissions = 1;
+  bool super_user = 2;
+}
+
+// DivisionsRequest is used to fetch all divisions the requested employee can access
+message DivisionsRequest {
+  string employee_uuid = 1;
+  string permission = 2;
+}
+
+// DivisionsResponse contains a list of division guids.
+message DivisionsResponse {
+  repeated string division_uuids = 1;
+  bool super_user = 2;
+}
+
+// DivisionPermissionsRequest is used to specify the requested employee and the target
+// division UUID. The method will return the granted permissions for the requested
+// division that are available on the target one. So for example when employee A
+// (requested) visits divion B's (target) page, the method will return
+// employee A's granted permissions.
+message DivisionPermissionsRequest {
+  string employee_uuid = 1;
+  string target_division_uuid = 2;
+}
+
+// DivisionPermissionsResponse contains a list of permission names
+message DivisionPermissionsResponse {
+  repeated string permissions = 1;
+  bool super_user = 2;
+}
+
+service Permissions {
+  // SupportedPermissions returns all of the permission actions the service supports.
+  rpc SupportedPermissions(SupportedPermissionsRequest) returns (SupportedPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions"
+    };
+  }
+  // GlobalPermissions returns global permissions for the requested employee - these are permissions independent of a resource like can_log_in
+  rpc GlobalPermissions(GlobalPermissionsRequest) returns (GlobalPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/global"
+    };
+  }
+  // Permissions for Employees
+
+  // Employees returns the employees the requested user can access depending on the
+  // provided permission.
+  rpc Employees(EmployeesRequest) returns (EmployeesResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/{permission}/employees"
+    };
+  }
+  // EmployeePermissions returns the employee permissions the requested employee can
+  // perform on the target employee.
+  rpc EmployeePermissions(EmployeePermissionsRequest) returns (EmployeePermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/employees/{target_employee_uuid}/permissions"
+    };
+  }
+  // ListEmployeesPermissions allows you to request same information as EmployeePermissions
+  // but with more than 1 target employee
+  rpc ListEmployeesPermissions(ListEmployeesPermissionsRequest) returns (ListEmployeesPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/employees_permissions"
+    };
+  }
+  // ListFieldsPermissions returns the fields the requested user can access on the target employee
+  // depending on the provided permission.
+  rpc ListFieldsPermissions(ListFieldsPermissionsRequest) returns (ListFieldsPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/{permission}/fields"
+    };
+  }
+  // Permissions for the team
+
+  // Teams returns the teams the requested user can access depending on the
+  // provided permission.
+  rpc Teams(TeamsRequest) returns (TeamsResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/{permission}/teams"
+    };
+  }
+  // TeamPermissions returns the team permissions the requested employee can
+  // perform on the target team.
+  rpc TeamPermissions(TeamPermissionsRequest) returns (TeamPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/teams/{target_team_uuid}/permissions"
+    };
+  }
+  // Permissions for the division
+
+  // Divisions returns the divisions the requested user can access depending on the
+  // provided permission.
+  rpc Divisions(DivisionsRequest) returns (DivisionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/{permission}/divisions"
+    };
+  }
+  // DivisionPermissions returns the division permissions the requested employee can
+  // perform on the target division.
+  rpc DivisionPermissions(DivisionPermissionsRequest) returns (DivisionPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/divisions/{target_division_uuid}/permissions"
+    };
+  }
+}

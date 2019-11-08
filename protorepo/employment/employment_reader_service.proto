@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package namely.employment;
+
+option csharp_namespace = "Namely.Employment.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "EmploymentReaderServiceProto";
+option java_package = "com.namely.protobuf.employment";
+
+import "employment/employment.proto";
+import "employment/employment_reader_health_check.proto";
+import "employment/pay_group.proto";
+import "google/api/annotations.proto";
+
+// Employment represents the link between an employee and a subsidiary.
+// The Employment Reader service will consume the evenstream and maintain its own DB to keep employment records.
+service EmploymentReader {
+  // Returns a single employment record
+  rpc GetEmployment(GetEmploymentRequest) returns (Employment) {
+    option (google.api.http) = {
+      get: "/v1/employments/{employment_uuid}"
+    };
+  }
+  // Returns all employment records based on filter criteria
+  rpc ListEmployments(ListEmploymentsRequest) returns (ListEmploymentsResponse) {
+    option (google.api.http) = {
+      get: "/v1/employments"
+    };
+  }
+  // Simple healthhcheck endpoint covering liveliness and dependency checks.
+  rpc EmploymentReaderHealthCheck(EmploymentReaderHealthCheckRequest) returns (EmploymentReaderHealthCheckResponse) {
+    option (google.api.http) = {
+      get: "/v1/health-check"
+    };
+  }
+  // Returns all pay group records based on filter criteria
+  // URL to submit requests to ListPayGroups:
+  //	 * http://HOST_NAME/api/employment-reader/employment/v1/pay-groups?by_company.company_uuid=companyUuid
+  rpc ListPayGroups(ListPayGroupsRequest) returns (ListPayGroupsResponse) {
+    option (google.api.http) = {
+      get: "/v1/pay-groups"
+    };
+  }
+  // Validates whether we can delete an employment or not
+  rpc CanDeleteEmployment(CanDeleteEmploymentRequest) returns (CanDeleteEmploymentResponse) {
+    option (google.api.http) = {
+      get: "/v1/can-delete-employment"
+    };
+  }
+}

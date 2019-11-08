@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package namely.org_units;
+
+option csharp_namespace = "Namely.OrgUnits.Events";
+option java_multiple_files = true;
+option java_outer_classname = "EventsProto";
+option java_package = "com.namely.protobuf.org_units";
+
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/wrappers.proto";
+import "org_units/employment_allocation.proto";
+import "org_units/org_units.proto";
+
+message OrgUnitTypeCreated {
+  OrgUnitType org_unit_type = 1;
+  // This is not part of the org units, but absolutely must be written at the
+  // same time by the backfiller to hcmdb.
+  google.protobuf.BoolValue display_in_team_sections = 2 [deprecated = true];
+}
+
+message OrgUnitTypeUpdated {
+  OrgUnitType org_unit_type = 1;
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  // https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/field-mask
+  google.protobuf.FieldMask field_mask = 2;
+  // This is not part of the org units, but absolutely must be written at the
+  // same time by the backfiller to hcmdb.
+  google.protobuf.BoolValue display_in_team_sections = 3 [deprecated = true];
+}
+
+message OrgUnitCreated {
+  OrgUnit org_unit = 1;
+}
+
+message OrgUnitUpdated {
+  OrgUnit org_unit = 1;
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  // https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/field-mask
+  google.protobuf.FieldMask field_mask = 2;
+}
+
+message EmploymentAllocationCreated {
+  EmploymentAllocation employment_allocation = 1;
+}
+
+message EmploymentAllocationUpdated {
+  EmploymentAllocation employment_allocation = 1;
+  // This is a FieldMask to indicate which fields are being updated.
+  // If this is left blank, that indicates NONE of the fields are being updated.
+  // https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/field-mask
+  google.protobuf.FieldMask field_mask = 2;
+}
+
+// We use this message to support one very specific use-case in which we
+// automatically apply an end date to an existing record while creating a new
+// record. It is a very restricted case. We do it only when a customer creates a
+// record that is even more future than their most future record. In all other
+// cases, we throw an overlap error rather than applying an end date to appease
+// our overlap rules. For instance, if we have a record starting May 31, and the
+// customer inserts a January 1 record with no end date, we throw an overlap
+// error rather than applying a May 30 end date. However, if the customer
+// inserts a December 1 record, and it is now the most future record, we
+// automatically apply a Novemeber 30 end date the May 31 record.
+message EmploymentAllocationCreatedAndUpdated {
+  EmploymentAllocationCreated employment_allocation_created = 1;
+  EmploymentAllocationUpdated employment_alocation_updated = 2;
+}
+
+message DeleteEmploymentAllocationsRequested {
+  string employment_uuid = 1;
+  // Indicates whether we delete allocation from hcm, org-units and payrolldb or just from payrolldb
+  google.protobuf.BoolValue delete_only_from_payroll = 2;
+  string subsidiary_uuid = 3;
+}
+
+message EmploymentAllocationDeleted {
+  string employment_allocation_uuid = 1;
+  // Indicates whether we delete allocation from hcm, org-units and payrolldb or just from payrolldb
+  google.protobuf.BoolValue delete_only_from_payroll = 2;
+  string subsidiary_uuid = 3;
+}
+
+// Messages that we use to implement Snapshot Pattern Data Fix
+// https://docs.google.com/document/d/1zTpv8ffBaoFREWPQ6qLEOTgTF31PY4ZnJPXbf7q-jd8/edit#heading=h.qethgnlatf3c
+message OrgUnitSnapshot {
+  OrgUnit org_unit = 1;
+}
+
+message OrgUnitTypeSnapshot {
+  OrgUnitType org_unit_type = 1;
+}
+
+message EmploymentAllocationSnapshot {
+  EmploymentAllocation employment_allocation = 1;
+}

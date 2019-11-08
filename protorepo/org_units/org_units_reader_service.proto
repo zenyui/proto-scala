@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package namely.org_units;
+
+option csharp_namespace = "Namely.OrgUnits.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "OrgUnitsReaderServiceProto";
+option java_package = "com.namely.protobuf.org_units";
+
+import "google/api/annotations.proto";
+import "google/type/date.proto";
+import "org_units/employee_type.proto";
+import "org_units/employment_allocation.proto";
+import "org_units/org_units.proto";
+
+service OrgUnitsReader {
+  // Returns a company's set of Org Unit Types with each type containing its Org Unit children
+  rpc ListOrgUnitTypes(ListOrgUnitTypesRequest) returns (ListOrgUnitTypesResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/org-unit-types/{company_uuid}"
+    };
+  }
+  // Returns a company's set of Org Units based on the requested Org Unit Type
+  rpc ListOrgUnits(ListOrgUnitsRequest) returns (ListOrgUnitsResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/org-units/{org_unit_type_uuid}"
+    };
+  }
+  // Returns an Org Unit
+  rpc GetOrgUnit(GetOrgUnitRequest) returns (OrgUnit);
+  // Returns an Org Unit Type
+  rpc GetOrgUnitType(GetOrgUnitTypeRequest) returns (OrgUnitType) {
+    option (google.api.http) = {
+      get: "/v1alpha1/org-unit-type/{org_unit_type_uuid}"
+    };
+  }
+  // Returns a company's set of Employee Types
+  rpc ListEmployeeTypes(ListEmployeeTypesRequest) returns (ListEmployeeTypesResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/employee-types/{company_uuid}"
+    };
+  }
+  // Returns an employment's set of Employment Allocations
+  rpc ListEmploymentAllocations(ListEmploymentAllocationsRequest) returns (ListEmploymentAllocationsResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/employment-allocations"
+    };
+  }
+}
+
+message ListOrgUnitTypesRequest {
+  string company_uuid = 1;
+  OrgUnitTypeStatusFilter status_filter = 2;
+}
+
+message ListOrgUnitTypesResponse {
+  string company_uuid = 1;
+  repeated OrgUnitType org_unit_types = 2;
+}
+
+// TODO(PU-3113): Add pagination
+message ListOrgUnitsRequest {
+  string org_unit_type_uuid = 1;
+}
+
+message ListOrgUnitsResponse {
+  repeated OrgUnit org_units = 1;
+}
+
+message GetOrgUnitRequest {
+  string org_unit_uuid = 1;
+}
+
+message GetOrgUnitTypeRequest {
+  oneof identifier {
+    string org_unit_type_uuid = 1;
+    // Retuns the OrgUnitType the provided OrgUnitUuid corresponds to
+    string org_unit_uuid = 2;
+  }
+}
+
+message ListEmployeeTypesRequest {
+  string company_uuid = 1;
+}
+
+message ListEmployeeTypesResponse {
+  repeated EmployeeType employee_types = 1;
+}
+
+message ListEmploymentAllocationsRequest {
+  message ByEmployment {
+    string employment_uuid = 1;
+  }
+  message ByOrgUnit {
+    string org_unit_uuid = 1;
+  }
+  oneof identifier {
+    ByEmployment by_employment = 1;
+    ByOrgUnit by_org_unit = 2;
+  }
+  // Optional:
+  // If set, then a full valid date (Month, Day, & Year are all set) then only EmploymentAllocations that are
+  // effective within the start_date / end_date range are returned.
+  // [Default] If not set, then all Employment Allocations are returned based on the given identifier.
+  google.type.Date effective_date = 3;
+  // Required when using ByEmployment, otherwise ignored
+  // We'd prefer to have this in the ByEmployment message, but the grpc
+  // gateway can't handle this correctly until this is resolved:
+  // https://github.com/grpc-ecosystem/grpc-gateway/issues/753
+  repeated string org_unit_type_uuids = 4;
+}
+
+message ListEmploymentAllocationsResponse {
+  repeated EmploymentAllocation employment_allocations = 1;
+}

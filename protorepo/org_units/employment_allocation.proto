@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package namely.org_units;
+
+option csharp_namespace = "Namely.OrgUnits.Grpc";
+option java_multiple_files = true;
+option java_outer_classname = "EmploymentAllocationProto";
+option java_package = "com.namely.protobuf.org_units";
+
+import "google/type/date.proto";
+import "namely/giraffe/stitch.proto";
+import "org_units/allocation.proto";
+
+message EmploymentAllocation {
+  // The primary identifier for the employment allocation
+  string employment_allocation_uuid = 1;
+  // The employment that employment_allocation is assigned to
+  string employment_uuid = 2 [
+    (namely.giraffe.stitch) = {
+      service: "namely.profiles.ProfilesService"
+      method: "GetProfileByEmployment"
+      request_parameter: "employmentUuid"
+      field_name: "profile"
+    }
+  ];
+  // List of allocations for this employment_allocation
+  repeated Allocation allocations = 4;
+  // The effective start date of the employment_allocation
+  google.type.Date effective_start_date = 5;
+  // The effective end date of the employment_allocation (inclusive)
+  google.type.Date effective_end_date = 6;
+  // To aid with sorting data by org unit type
+  // On write, server will confirm this matches the org unit uuids in allocations field
+  string org_unit_type_uuid = 7;
+}
