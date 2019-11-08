@@ -1,9 +1,8 @@
 import sbt.Credentials
 
 val buildVersion: String = sys.env.getOrElse("VERSION", "development")
-val sparkVersion = "2.4.3"
 
-name := "proto-spark"
+name := "proto-scala"
 organization := "com.namely"
 version := buildVersion
 scalaVersion := "2.11.12"
@@ -13,24 +12,10 @@ parallelExecution in Test := false
 scalacOptions ++= Seq("-target:jvm-1.8" )
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
-unmanagedSourceDirectories in Compile += baseDirectory.value / "src" / "main" / "generated"
-
 updateOptions := updateOptions.value.withCachedResolution(true)
 
-resolvers ++= Seq(
-  "Artima Maven Repository" at "https://repo.artima.com/releases",
-  "Spark Packages Repo" at "https://dl.bintray.com/spark-packages/maven/"
-)
-
 libraryDependencies ++= Seq(
-  "com.google.protobuf" % "protobuf-java" % "3.7.1" % "provided",
-  "org.scalatest" %% "scalatest" % "3.0.4" % "test",
-  "io.grpc" % "grpc-stub" % "1.15.1",
-  "io.grpc" % "grpc-protobuf" % "1.15.1",
-  "org.apache.spark" %% "spark-sql" % "2.4.3" % "provided",
-  "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
+  "com.google.protobuf" % "protobuf-java" % "3.7.1" % "provided"
 )
 
 /****************************************************************/
@@ -43,22 +28,26 @@ PB.protocOptions in Compile := Seq("--proto_path", ".")
 PB.protocVersion := "-v3.7.1"
 
 
-//val protoWhitelist: Set[String] = Set(
-//  "protorepo/employment",
-//  "protorepo/org_charts",
-//  "protorepo/org_units",
-//  "protorepo/permissions",
-//  "protorepo/event_gateway",
-//  "protorepo/namely/giraffe"
-//)
+val services = Seq(
+  "employment",
+  "org_charts",
+  "org_units",
+  "permissions",
+  "event_gateway",
+  "google",
+  "namely/giraffe"
+)
 
 // set the build path
-PB.protoSources in Compile ++= Seq(file("protorepo"))
+PB.protoSources in Compile := services.distinct.map(service => baseDirectory.value / s"protorepo/$service")
 
 // Additional directories to search for imports:
-PB.includePaths in Compile ++= Seq(file("protorepo"))
+PB.includePaths in Compile := Seq(baseDirectory.value / "protorepo")
 
-excludeFilter in PB.generate := new SimpleFileFilter((f: File) => f.getAbsolutePath.contains("protorepo/google/protobuf/"))
+// don't know why we can build this
+excludeFilter in PB.generate := new SimpleFileFilter((f: File) =>
+  f.getAbsolutePath.contains("google/protobuf/")
+)
 
 // set output and options
 PB.targets in Compile := Seq(
