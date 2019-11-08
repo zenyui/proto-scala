@@ -1,74 +1,91 @@
-// The simplest possible sbt build file is just one line:
+import sbt.Credentials
 
-scalaVersion := "2.13.1"
-// That is, to create a valid sbt build, all you've got to do is define the
-// version of Scala you'd like your project to use.
+val buildVersion: String = sys.env.getOrElse("VERSION", "development")
+val sparkVersion = "2.4.3"
 
-// ============================================================================
+name := "proto-spark"
+organization := "com.namely"
+version := buildVersion
+scalaVersion := "2.11.12"
+isSnapshot := !version.value.matches("^\\d+\\.\\d+\\.\\d+$")
+publishMavenStyle := true
+parallelExecution in Test := false
+scalacOptions ++= Seq("-target:jvm-1.8" )
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
-// Lines like the above defining `scalaVersion` are called "settings". Settings
-// are key/value pairs. In the case of `scalaVersion`, the key is "scalaVersion"
-// and the value is "2.13.1"
+unmanagedSourceDirectories in Compile += baseDirectory.value / "src" / "main" / "generated"
 
-// It's possible to define many kinds of settings, such as:
+updateOptions := updateOptions.value.withCachedResolution(true)
 
-name := "hello-world"
-organization := "ch.epfl.scala"
-version := "1.0"
+resolvers ++= Seq(
+  "Artima Maven Repository" at "https://repo.artima.com/releases",
+  "Spark Packages Repo" at "https://dl.bintray.com/spark-packages/maven/"
+)
 
-// Note, it's not required for you to define these three settings. These are
-// mostly only necessary if you intend to publish your library's binaries on a
-// place like Sonatype or Bintray.
+libraryDependencies ++= Seq(
+  "com.google.protobuf" % "protobuf-java" % "3.7.1" % "provided",
+  "org.scalatest" %% "scalatest" % "3.0.4" % "test",
+  "io.grpc" % "grpc-stub" % "1.15.1",
+  "io.grpc" % "grpc-protobuf" % "1.15.1",
+  "org.apache.spark" %% "spark-sql" % "2.4.3" % "provided",
+  "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
+  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
+)
+
+/****************************************************************/
+// SCALAPB SETUP
+
+//libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
+
+// custom cli options
+PB.protocOptions in Compile := Seq("--proto_path", ".")
+PB.protocVersion := "-v3.7.1"
 
 
-// Want to use a published library in your project?
-// You can define other libraries as dependencies in your build like this:
-libraryDependencies += "org.typelevel" %% "cats-core" % "2.0.0"
-// Here, `libraryDependencies` is a set of dependencies, and by using `+=`,
-// we're adding the cats dependency to the set of dependencies that sbt will go
-// and fetch when it starts up.
-// Now, in any Scala file, you can import classes, objects, etc., from cats with
-// a regular import.
+val protoWhitelist: Set[String] = Set(
+  "protorepo/employment",
+  "protorepo/org_charts",
+  "protorepo/org_units",
+  "protorepo/permissions",
+  "protorepo/event_gateway",
+  "protorepo/namely/giraffe"
+)
 
-// TIP: To find the "dependency" that you need to add to the
-// `libraryDependencies` set, which in the above example looks like this:
+// set the build path
+PB.protoSources in Compile ++= protoWhitelist.toSeq.map(path => file(path))
 
-// "org.typelevel" %% "cats-core" % "2.0.0"
+// Additional directories to search for imports:
+PB.includePaths in Compile ++= Seq(file("protorepo"))
 
-// You can use Scaladex, an index of all known published Scala libraries. There,
-// after you find the library you want, you can just copy/paste the dependency
-// information that you need into your build file. For example, on the
-// typelevel/cats Scaladex page,
-// https://index.scala-lang.org/typelevel/cats, you can copy/paste the sbt
-// dependency from the sbt box on the right-hand side of the screen.
+// set output and options
+PB.targets in Compile := Seq(
+  //  PB.gens.java -> (sourceManaged in Compile).value,
+  scalapb.gen(
+    flatPackage=false, // set to true to remove file name subpackage for scala classes
+    javaConversions=false,
+    grpc=false
+  ) -> (sourceManaged in Compile).value
+)
 
-// IMPORTANT NOTE: while build files look _kind of_ like regular Scala, it's
-// important to note that syntax in *.sbt files doesn't always behave like
-// regular Scala. For example, notice in this build file that it's not required
-// to put our settings into an enclosing object or class. Always remember that
-// sbt is a bit different, semantically, than vanilla Scala.
+// END SCALAPB SETUP
+/****************************************************************/
 
-// ============================================================================
+lazy val printArtifactName = taskKey[Unit]("Get the artifact name")
 
-// Most moderately interesting Scala projects don't make use of the very simple
-// build file style (called "bare style") used in this build.sbt file. Most
-// intermediate Scala projects make use of so-called "multi-project" builds. A
-// multi-project build makes it possible to have different folders which sbt can
-// be configured differently for. That is, you may wish to have different
-// dependencies or different testing frameworks defined for different parts of
-// your codebase. Multi-project builds make this possible.
+printArtifactName := {
+  println((artifactPath in (Compile, packageBin)).value.getName)
+}
 
-// Here's a quick glimpse of what a multi-project build looks like for this
-// build, with only one "subproject" defined, called `root`:
+// Publish assembly
+artifact in (Compile, assembly) := {
+  val art = (artifact in (Compile, assembly)).value
+  art.withClassifier(Some("assembly"))
+}
 
-// lazy val root = (project in file(".")).
-//   settings(
-//     inThisBuild(List(
-//       organization := "ch.epfl.scala",
-//       scalaVersion := "2.13.1"
-//     )),
-//     name := "hello-world"
-//   )
+addArtifact(artifact in (Compile, assembly), assembly)
 
-// To learn more about multi-project builds, head over to the official sbt
-// documentation at http://www.scala-sbt.org/documentation.html
+// Skip tests on assembly
+test in assembly := {}
+
+assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)
