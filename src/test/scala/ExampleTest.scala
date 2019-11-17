@@ -15,9 +15,11 @@ class ExampleTest extends FunSpec with MustMatchers with SparkSupport {
       import com.namely.protobuf.bad_example.event.GoodEvent
       import scalapb.spark.Implicits._
 
+      // make a normal instance of the proto class
       val msg = GoodEvent().withSomeString("some good string")
       println(msg.toString)
 
+      // spark transformation that unpacks the bytes
       val byteArray: Array[Byte] = msg.toByteArray
       val ds: Dataset[Array[Byte]] = spark.createDataset(Seq(byteArray))
       val output: Try[Dataset[GoodEvent]] = Try {
@@ -25,6 +27,8 @@ class ExampleTest extends FunSpec with MustMatchers with SparkSupport {
         tmp.show
         tmp
       }
+
+      // this should succeed
       output.isSuccess must be (true)
       output.map(_.first).toOption must be (Some(msg))
     }
@@ -35,20 +39,28 @@ class ExampleTest extends FunSpec with MustMatchers with SparkSupport {
       import com.namely.protobuf.bad_example.event.BadEvent
       import scalapb.spark.Implicits._
 
-      val msg = BadEvent().withSomeString("some good string")
+      // instantiate class that has a map attribute
+      val msg = BadEvent().withSomeString("some bad string")
       println(msg.toString)
 
+      // make a dataset of the proto byte array
       val byteArray: Array[Byte] = msg.toByteArray
       val ds: Dataset[Array[Byte]] = spark.createDataset(Seq(byteArray))
+
+      // demonstrate that unmarshalling fails
       val output: Try[Dataset[BadEvent]] = Try {
         val tmp = ds.map(BadEvent.parseFrom)
         tmp.show
         tmp
       }
+
+      // print the failure logs
       output.failed.map(t => {
         logger.error(t)
         logger.error(t.getCause)
       })
+
+      // fail the test
       output.isSuccess must be (true)
       output.map(_.first).toOption must be (Some(msg))
     }
