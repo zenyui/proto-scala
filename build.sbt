@@ -1,6 +1,7 @@
 import sbt.Credentials
 
 val buildVersion: String = sys.env.getOrElse("VERSION", "development")
+val sparkVersion: String = "2.4.3"
 
 name := "proto-scala"
 organization := "com.namely"
@@ -15,8 +16,18 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 updateOptions := updateOptions.value.withCachedResolution(true)
 
 libraryDependencies ++= Seq(
-  "com.google.protobuf" % "protobuf-java" % "3.7.1" % "provided"
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test,
+  "com.google.protobuf" % "protobuf-java" % "3.7.1",
+  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
+  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
+  "com.thesamet.scalapb" %% "sparksql-scalapb" % "0.9.0"
 )
+
+assemblyShadeRules in assembly := Seq(
+  ShadeRule.rename("com.google.protobuf.**" -> "shadeproto.@1").inAll
+)
+
+parallelExecution in Test := false
 
 /****************************************************************/
 // SCALAPB SETUP
@@ -33,7 +44,8 @@ val services = Seq(
   "permissions",
   "event_gateway",
   "google",
-  "namely/giraffe"
+  "namely/giraffe",
+  "bad_example"
 )
 
 // set the build path

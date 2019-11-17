@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package namely.bad_example;
+
+option java_multiple_files = true;
+option java_outer_classname = "BadEventProto";
+option java_package = "com.namely.protobuf.bad_example";
+
+import "google/protobuf/timestamp.proto";
+
+message BadEvent {
+  // a string for testing
+  string some_string = 1;
+  // a google timestamp for testing
+  google.protobuf.Timestamp timestamp = 2;
+  // a map that fails
+  map<string, string> headers = 3;
+}
+
+
+message GoodEvent {
+    // a string for testing
+    string some_string = 1;
+    // a google timestamp for testing
+    google.protobuf.Timestamp timestamp = 2;
+  }
