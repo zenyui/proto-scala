@@ -1,3 +1,11 @@
-### scalapb example
+# scalapb example
 
-This is demonstrating an issue I'm having with selectively grabbing google dependencies. In theory, the service protobufs should be able to dynamically request the google protobufs, but it doesn't seem to work unless I explicitly build all the google protobufs as well. Also, the subdirectory `protorepo/google/protobuf` cannot be directly compiled...
+Small example demonstrating proto files for many services.
+
+### Current issue
+
+spark can't serialize the `scalapb.TypeMapper` class, so a spark transformation that uses the generated class `.parseFrom(Array[Byte])` constructor fails. I'm able to recreate this by defining a proto3 object with a `map<string, string>` field.
+
+To reproduce this example, run `sbt test`
+- [proto file](./protorepo/bad_example/event.proto)
+- [test](./src/test/scala/ExampleTest.scala)
